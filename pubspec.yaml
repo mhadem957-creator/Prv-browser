@@ -1,0 +1,36 @@
+name: privacy_browser
+description: "A privacy-focused, cross-platform mobile browser with SearXNG search and secure DNS."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core WebView engine
+  flutter_inappwebview: ^6.1.5
+
+  # State management for app-wide settings (search engine, DNS, blocking toggles)
+  provider: ^6.1.2
+
+  # Persists user settings (SearXNG URL, DoH provider, toggles) across launches
+  shared_preferences: ^2.3.3
+
+  # Used by DnsService for DNS-over-HTTPS (DoH) lookups
+  http: ^1.2.2
+
+  # Deep-links to Android's system "Private DNS" settings screen
+  android_intent_plus: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/adblock/

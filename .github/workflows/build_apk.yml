@@ -42,12 +42,56 @@ jobs:
 
       # This repo doesn't commit the android/ platform folder (it contains a
       # binary Gradle wrapper jar) — generate it fresh against whatever
-      # Flutter SDK version this workflow installed, then patch it.
+      # Flutter SDK version this workflow installed.
       - name: Scaffold Android platform folder
         run: flutter create --platforms=android --org com.privacybrowser --project-name privacy_browser .
 
+      # Inlined here (not a separate scripts/*.py file) so the workflow has
+      # no dependency on any other file existing in the repo.
       - name: Patch AndroidManifest.xml (permissions, app label)
-        run: python3 scripts/patch_manifest.py
+        run: |
+          python3 - << 'PYEOF'
+          import re
+          from pathlib import Path
+
+          manifest_path = Path("android/app/src/main/AndroidManifest.xml")
+          if not manifest_path.exists():
+              raise SystemExit(f"ERROR: {manifest_path} not found.")
+
+          text = manifest_path.read_text(encoding="utf-8")
+
+          required_permissions = [
+              '<uses-permission android:name="android.permission.INTERNET"/>',
+              '<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>',
+          ]
+
+          manifest_open = re.search(r"<manifest[^>]*>", text)
+          if manifest_open:
+              insert_at = manifest_open.end()
+              missing = [p for p in required_permissions if p.split('"')[1] not in text]
+              if missing:
+                  block = "\n    " + "\n    ".join(missing)
+                  text = text[:insert_at] + block + text[insert_at:]
+
+          if 'android:label="' in text:
+              text = re.sub(
+                  r'android:label="[^"]*"',
+                  'android:label="Privacy Browser"',
+                  text,
+                  count=1,
+              )
+
+          if "android:usesCleartextTraffic" not in text:
+              text = re.sub(
+                  r"(<application\b)",
+                  r'\1\n        android:usesCleartextTraffic="false"',
+                  text,
+                  count=1,
+              )
+
+          manifest_path.write_text(text, encoding="utf-8")
+          print(f"Patched {manifest_path}")
+          PYEOF
 
       - name: Install Flutter dependencies
         run: flutter pub get

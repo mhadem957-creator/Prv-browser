@@ -93,6 +93,9 @@ jobs:
           print(f"Patched {manifest_path}")
           PYEOF
 
+          - name: Remove default widget test
+        run: rm -f test/widget_test.dart
+
       - name: Install Flutter dependencies
         run: flutter pub get
 

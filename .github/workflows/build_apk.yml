@@ -93,6 +93,12 @@ jobs:
           print(f"Patched {manifest_path}")
           PYEOF
 
+      # `flutter create .` scaffolds a default test/widget_test.dart that
+      # references a MyApp class that doesn't exist in this project — remove
+      # it so it doesn't break `flutter test`.
+      - name: Remove default widget test
+        run: rm -f test/widget_test.dart
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
